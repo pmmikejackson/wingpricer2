@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Wing Pricing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .results-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #FF6B6B;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #FF6B6B;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .quantity-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quantity-chip {
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .quantity-chip.active {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+            transform: scale(1.05);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .price-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FF6B6B;
+            transition: all 0.3s ease;
+        }
+
+        .price-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .price-card h3 {
+            color: #FF6B6B;
+            margin-bottom: 10px;
+        }
+
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        .food-cost-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .optimal { background: #4CAF50; color: white; }
+        .acceptable { background: #FFC107; color: #333; }
+        .warning { background: #FF5722; color: white; }
+
+        .analytics-section {
+            grid-column: 1 / -1;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+
+        .history-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .history-table th, .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .save-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍗 Smart Wing Pricing Calculator</h1>
+            <p>Optimize your wing prices to hit the perfect food cost percentage</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📊 Input Your Costs</h2>
+                
+                <div class="input-group">
+                    <label for="caseWeight">Case Weight (lbs)</label>
+                    <input type="number" id="caseWeight" placeholder="40" step="0.1" value="40">
+                </div>
+
+                <div class="input-group">
+                    <label for="casePrice">Case Price ($)</label>
+                    <input type="number" id="casePrice" placeholder="120" step="0.01" value="120">
+                </div>
+
+                <div class="input-group">
+                    <label for="wingsPerPound">Average Wings per Pound</label>
+                    <input type="number" id="wingsPerPound" placeholder="8" step="0.1" value="8">
+                </div>
+
+                <div class="input-group">
+                    <label for="targetFoodCost">Target Food Cost (%)</label>
+                    <input type="number" id="targetFoodCost" placeholder="30" step="0.1" value="30" min="25" max="35">
+                </div>
+
+                <div class="input-group">
+                    <label>Select Serving Sizes</label>
+                    <div class="quantity-inputs">
+                        <div class="quantity-chip" data-qty="6">6 wings</div>
+                        <div class="quantity-chip" data-qty="10">10 wings</div>
+                        <div class="quantity-chip" data-qty="12">12 wings</div>
+                        <div class="quantity-chip" data-qty="20">20 wings</div>
+                        <div class="quantity-chip" data-qty="25">25 wings</div>
+                        <div class="quantity-chip" data-qty="50">50 wings</div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculatePrices()">Calculate Optimal Prices</button>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title">💰 Recommended Prices</h2>
+                <div id="priceResults"></div>
+            </div>
+
+            <div class="analytics-section">
+                <h2 class="section-title">📈 Analytics & History</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div class="metric-card">
+                        <div class="metric-label">Avg Food Cost</div>
+                        <div class="metric-value" id="avgFoodCost">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Best Performer</div>
+                        <div class="metric-value" id="bestPerformer">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Calculations</div>
+                        <div class="metric-value" id="totalCalcs">0</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <p style="color: #999;">Price trend visualization will appear here after multiple calculations</p>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">Recent Price History</h3>
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Case Price</th>
+                            <th>Cost/Wing</th>
+                            <th>Avg Food Cost %</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">No history yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize storage
+        let priceHistory = [];
+        let selectedQuantities = new Set();
+
+        // Load history from memory (in production, this would use a database)
+        function loadHistory() {
+            // Simulating loaded data
+            updateAnalytics();
+        }
+
+        // Quantity chip selection
+        document.querySelectorAll('.quantity-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const qty = parseInt(this.dataset.qty);
+                if (this.classList.contains('active')) {
+                    selectedQuantities.add(qty);
+                } else {
+                    selectedQuantities.delete(qty);
+                }
+            });
+        });
+
+        // Default selections
+        document.querySelectorAll('.quantity-chip').forEach(chip => {
+            if ([6, 10, 12].includes(parseInt(chip.dataset.qty))) {
+                chip.click();
+            }
+        });
+
+        function calculatePrices() {
+            const caseWeight = parseFloat(document.getElementById('caseWeight').value);
+            const casePrice = parseFloat(document.getElementById('casePrice').value);
+            const wingsPerPound = parseFloat(document.getElementById('wingsPerPound').value);
+            const targetFoodCost = parseFloat(document.getElementById('targetFoodCost').value);
+
+            if (!caseWeight || !casePrice || !wingsPerPound || selectedQuantities.size === 0) {
+                alert('Please fill in all fields and select at least one serving size');
+                return;
+            }
+
+            // Calculate cost per wing
+            const totalWings = caseWeight * wingsPerPound;
+            const costPerWing = casePrice / totalWings;
+
+            // Generate price recommendations
+            const resultsDiv = document.getElementById('priceResults');
+            resultsDiv.innerHTML = '';
+
+            const calculationData = {
+                date: new Date().toLocaleDateString(),
+                casePrice: casePrice,
+                costPerWing: costPerWing,
+                prices: []
+            };
+
+            Array.from(selectedQuantities).sort((a, b) => a - b).forEach(qty => {
+                const baseCost = costPerWing * qty;
+                
+                // Calculate prices for different food cost percentages
+                const optimalPrice = baseCost / (targetFoodCost / 100);
+                const minPrice = baseCost / 0.35; // 35% food cost
+                const maxPrice = baseCost / 0.25; // 25% food cost
+
+                const priceCard = document.createElement('div');
+                priceCard.className = 'price-card';
+                
+                const actualFoodCost = (baseCost / optimalPrice * 100).toFixed(1);
+                const costIndicator = getFoodCostIndicator(actualFoodCost);
+
+                priceCard.innerHTML = `
+                    <h3>${qty} Wings</h3>
+                    <div class="price-info">
+                        <span>Cost:</span>
+                        <strong>$${baseCost.toFixed(2)}</strong>
+                    </div>
+                    <div class="price-info">
+                        <span>Optimal Price (${targetFoodCost}%):</span>
+                        <strong style="color: #4CAF50;">$${optimalPrice.toFixed(2)}</strong>
+                    </div>
+                    <div class="price-info">
+                        <span>Price Range:</span>
+                        <span>$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="price-info">
+                        <span>Per Wing:</span>
+                        <span>$${(optimalPrice / qty).toFixed(2)}</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <span class="food-cost-indicator ${costIndicator.class}">${costIndicator.text}</span>
+                        <button class="save-btn" style="float: right;" onclick="savePrice(${qty}, ${optimalPrice.toFixed(2)}, ${actualFoodCost})">
+                            Save Price
+                        </button>
+                    </div>
+                `;
+
+                resultsDiv.appendChild(priceCard);
+
+                calculationData.prices.push({
+                    quantity: qty,
+                    price: optimalPrice,
+                    foodCost: actualFoodCost
+                });
+            });
+
+            // Add to history
+            priceHistory.push(calculationData);
+            updateHistory();
+            updateAnalytics();
+
+            // Smart algorithm learning (simplified for demo)
+            if (priceHistory.length > 3) {
+                showSmartSuggestions();
+            }
+        }
+
+        function getFoodCostIndicator(foodCost) {
+            if (foodCost >= 29 && foodCost <= 31) {
+                return { class: 'optimal', text: 'Optimal Food Cost' };
+            } else if (foodCost >= 25 && foodCost <= 35) {
+                return { class: 'acceptable', text: 'Acceptable Range' };
+            } else {
+                return { class: 'warning', text: 'Outside Target Range' };
+            }
+        }
+
+        function updateHistory() {
+            const historyBody = document.getElementById('historyBody');
+            historyBody.innerHTML = '';
+
+            priceHistory.slice(-5).reverse().forEach((entry, index) => {
+                const avgFoodCost = entry.prices.reduce((sum, p) => sum + parseFloat(p.foodCost), 0) / entry.prices.length;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date}</td>
+                    <td>$${entry.casePrice.toFixed(2)}</td>
+                    <td>$${entry.costPerWing.toFixed(3)}</td>
+                    <td>${avgFoodCost.toFixed(1)}%</td>
+                    <td><button onclick="loadCalculation(${priceHistory.length - 1 - index})" style="padding: 4px 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">Load</button></td>
+                `;
+                historyBody.appendChild(row);
+            });
+        }
+
+        function updateAnalytics() {
+            if (priceHistory.length === 0) return;
+
+            // Calculate average food cost
+            let totalFoodCost = 0;
+            let totalEntries = 0;
+            let quantityPerformance = {};
+
+            priceHistory.forEach(entry => {
+                entry.prices.forEach(price => {
+                    totalFoodCost += parseFloat(price.foodCost);
+                    totalEntries++;
+                    
+                    if (!quantityPerformance[price.quantity]) {
+                        quantityPerformance[price.quantity] = [];
+                    }
+                    quantityPerformance[price.quantity].push(parseFloat(price.foodCost));
+                });
+            });
+
+            const avgFoodCost = totalEntries > 0 ? (totalFoodCost / totalEntries).toFixed(1) : '-';
+            document.getElementById('avgFoodCost').textContent = avgFoodCost + '%';
+
+            // Find best performer
+            let bestQty = '-';
+            let bestAvg = 100;
+            
+            Object.entries(quantityPerformance).forEach(([qty, costs]) => {
+                const avg = costs.reduce((a, b) => a + b, 0) / costs.length;
+                const distance = Math.abs(avg - 30);
+                if (distance < Math.abs(bestAvg - 30)) {
+                    bestAvg = avg;
+                    bestQty = qty + ' wings';
+                }
+            });
+            
+            document.getElementById('bestPerformer').textContent = bestQty;
+            document.getElementById('totalCalcs').textContent = priceHistory.length;
+        }
+
+        function showSmartSuggestions() {
+            // Machine learning simulation - analyze patterns
+            const lastThree = priceHistory.slice(-3);
+            const avgCasePrice = lastThree.reduce((sum, entry) => sum + entry.casePrice, 0) / 3;
+            
+            // Add suggestion to results
+            const resultsDiv = document.getElementById('priceResults');
+            const suggestionDiv = document.createElement('div');
+            suggestionDiv.style.cssText = 'background: #e3f2fd; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #2196F3;';
+            suggestionDiv.innerHTML = `
+                <h4 style="color: #1976D2; margin-bottom: 10px;">🤖 Smart Pricing Insight</h4>
+                <p>Based on your last ${lastThree.length} calculations, your average case price is $${avgCasePrice.toFixed(2)}. 
+                Consider adjusting your target food cost to ${avgCasePrice > 130 ? '32%' : '28%'} for better margins during 
+                ${avgCasePrice > 130 ? 'high cost periods' : 'lower cost periods'}.</p>
+            `;
+            resultsDiv.appendChild(suggestionDiv);
+        }
+
+        function savePrice(quantity, price, foodCost) {
+            alert(`Price saved! ${quantity} wings at $${price} (${foodCost}% food cost)`);
+            // In production, this would save to a database
+        }
+
+        function loadCalculation(index) {
+            const entry = priceHistory[index];
+            document.getElementById('casePrice').value = entry.casePrice;
+            // Trigger recalculation
+            calculatePrices();
+        }
+
+        // Initialize
+        loadHistory();
+    </script>
+</body>
+</html>
